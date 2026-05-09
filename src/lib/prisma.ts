@@ -40,6 +40,7 @@ const createPrismaClient = () => {
 
     const adapter = new PrismaMariaDb({
       ...config,
+      connectTimeout: 10000, // 10s connection timeout
       ssl: {
         rejectUnauthorized: true,
       },
