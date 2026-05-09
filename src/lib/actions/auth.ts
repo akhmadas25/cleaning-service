@@ -7,25 +7,25 @@ import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 
 export async function registerUser(data: RegisterInput) {
-  const validated = registerSchema.safeParse(data);
-
-  if (!validated.success) {
-    return { error: "Invalid fields. Please check your input." };
-  }
-
-  const { name, email, password } = validated.data;
-
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (existingUser) {
-    return { error: "An account with this email already exists." };
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 12);
-
   try {
+    const validated = registerSchema.safeParse(data);
+
+    if (!validated.success) {
+      return { error: "Invalid fields. Please check your input." };
+    }
+
+    const { name, email, password } = validated.data;
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return { error: "An account with this email already exists." };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
     await prisma.user.create({
       data: {
         name,
@@ -35,7 +35,8 @@ export async function registerUser(data: RegisterInput) {
     });
 
     return { success: "Account created successfully! Please log in." };
-  } catch {
+  } catch (error) {
+    console.error("Registration error:", error);
     return { error: "Something went wrong. Please try again." };
   }
 }
