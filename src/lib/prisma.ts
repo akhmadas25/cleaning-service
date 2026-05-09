@@ -5,20 +5,36 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-let prisma: PrismaClient;
+let prismaInstance: PrismaClient;
 
-if (process.env.NODE_ENV === "production") {
-  const adapter = new PrismaMariaDb(process.env.DATABASE_URL!);
-  prisma = new PrismaClient({ adapter });
+if (globalForPrisma.prisma) {
+  prismaInstance = globalForPrisma.prisma;
 } else {
-  if (!globalForPrisma.prisma) {
-    const adapter = new PrismaMariaDb(process.env.DATABASE_URL!);
-    globalForPrisma.prisma = new PrismaClient({ 
-      adapter,
-      log: ["query"],
-    });
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl) {
+    const match = dbUrl.match(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
+    if (match) {
+      const [_, user, password, host, port, database] = match;
+      const adapter = new PrismaMariaDb({
+        host,
+        port: parseInt(port),
+        user,
+        password,
+        database,
+        ssl: {
+          rejectUnauthorized: true,
+        },
+      });
+      prismaInstance = new PrismaClient({ adapter, log: ["query"] });
+    } else {
+      prismaInstance = new PrismaClient({ log: ["query"] });
+    }
+  } else {
+    prismaInstance = new PrismaClient({ log: ["query"] });
   }
-  prisma = globalForPrisma.prisma;
 }
 
-export { prisma };
+export const prisma = prismaInstance;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prismaInstance;
+export { prismaInstance as db }; // alias if needed
+

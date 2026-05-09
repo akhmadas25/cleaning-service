@@ -1,10 +1,25 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import * as dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 dotenv.config();
 
-const adapter = new PrismaMariaDb(process.env.DATABASE_URL!);
+const dbUrl = process.env.DATABASE_URL!;
+const match = dbUrl.match(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
+if (!match) throw new Error("Invalid DATABASE_URL");
+
+const [_, user, password, host, port, database] = match;
+
+const adapter = new PrismaMariaDb({
+  host,
+  port: parseInt(port),
+  user,
+  password,
+  database,
+  ssl: {
+    rejectUnauthorized: true,
+  },
+});
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
