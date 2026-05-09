@@ -5,21 +5,26 @@ import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 dotenv.config();
 
 const dbUrl = process.env.DATABASE_URL!;
-const match = dbUrl.match(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
-if (!match) throw new Error("Invalid DATABASE_URL");
+let adapter: PrismaMariaDb;
 
-const [_, user, password, host, port, database] = match;
+try {
+  const url = new URL(dbUrl.replace("mysql:", "http:"));
+  adapter = new PrismaMariaDb({
+    host: url.hostname,
+    port: url.port ? parseInt(url.port) : 3306,
+    user: url.username,
+    password: decodeURIComponent(url.password),
+    database: url.pathname.substring(1).split('?')[0],
+    ssl: {
+      rejectUnauthorized: true,
+    },
+  });
+} catch (error) {
+  console.error("Failed to parse DATABASE_URL for adapter:", error);
+  // Fallback to string-based config if URL parsing fails
+  adapter = new PrismaMariaDb(dbUrl);
+}
 
-const adapter = new PrismaMariaDb({
-  host,
-  port: parseInt(port),
-  user,
-  password,
-  database,
-  ssl: {
-    rejectUnauthorized: true,
-  },
-});
 const prisma = new PrismaClient({ adapter });
 
 async function main() {

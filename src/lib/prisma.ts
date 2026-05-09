@@ -5,36 +5,31 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-let prismaInstance: PrismaClient;
-
-if (globalForPrisma.prisma) {
-  prismaInstance = globalForPrisma.prisma;
-} else {
+const createPrismaClient = () => {
   const dbUrl = process.env.DATABASE_URL;
-  if (dbUrl) {
-    const match = dbUrl.match(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
-    if (match) {
-      const [_, user, password, host, port, database] = match;
-      const adapter = new PrismaMariaDb({
-        host,
-        port: parseInt(port),
-        user,
-        password,
-        database,
-        ssl: {
-          rejectUnauthorized: true,
-        },
-      });
-      prismaInstance = new PrismaClient({ adapter, log: ["query"] });
-    } else {
-      prismaInstance = new PrismaClient({ log: ["query"] });
-    }
-  } else {
-    prismaInstance = new PrismaClient({ log: ["query"] });
-  }
-}
+  if (!dbUrl) return new PrismaClient({ log: ["query"] });
 
-export const prisma = prismaInstance;
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prismaInstance;
-export { prismaInstance as db }; // alias if needed
+  try {
+    const url = new URL(dbUrl.replace("mysql:", "http:"));
+    const adapter = new PrismaMariaDb({
+      host: url.hostname,
+      port: url.port ? parseInt(url.port) : 3306,
+      user: url.username,
+      password: decodeURIComponent(url.password),
+      database: url.pathname.substring(1).split('?')[0],
+      ssl: {
+        rejectUnauthorized: true,
+      },
+    });
+    return new PrismaClient({ adapter, log: ["query"] });
+  } catch (error) {
+    console.error("Prisma adapter init error:", error);
+    return new PrismaClient({ log: ["query"] });
+  }
+};
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+export { prisma as db }; // alias if needed
 
