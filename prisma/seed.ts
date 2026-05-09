@@ -15,6 +15,7 @@ try {
     user: url.username,
     password: decodeURIComponent(url.password),
     database: url.pathname.substring(1).split('?')[0],
+    connectTimeout: 10000,
     ssl: {
       rejectUnauthorized: true,
     },
