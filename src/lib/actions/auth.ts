@@ -49,6 +49,7 @@ export async function loginUser(data: { email: string; password: string }) {
     });
     return { success: true };
   } catch (error) {
+    console.error("Login error:", error);
     if (error instanceof AuthError) {
       switch (error.type) {
         case "CredentialsSignin":
