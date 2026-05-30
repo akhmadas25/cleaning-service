@@ -39,11 +39,9 @@ export function Navbar() {
         <div className="flex items-center justify-between h-24">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-md bg-[#FFD700] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-[#0088FF]" />
-            </div>
+            <img src="/logo.jpeg" alt="SatSet Cleaning Logo" className="w-10 h-10 rounded-md object-cover bg-white" />
             <span className="font-extrabold text-xl text-white tracking-widest uppercase">
-              LOGO
+              SatSet Cleaning
             </span>
           </Link>
 
@@ -97,7 +95,10 @@ export function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => signOut({ callbackUrl: "/" })}
+                    onClick={async () => {
+                      await signOut({ redirect: false });
+                      window.location.href = "/";
+                    }}
                     className="text-red-600 focus:text-red-600 flex items-center gap-2"
                   >
                     <LogOut className="w-4 h-4" />
@@ -163,7 +164,11 @@ export function Navbar() {
                     Dasbor
                   </Link>
                   <button
-                    onClick={() => logoutUser()}
+                    onClick={async () => {
+                      setMobileOpen(false);
+                      await signOut({ redirect: false });
+                      window.location.href = "/";
+                    }}
                     className="py-2 px-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 text-left"
                   >
                     Keluar

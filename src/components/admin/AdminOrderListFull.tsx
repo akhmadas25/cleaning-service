@@ -71,7 +71,7 @@ export function AdminOrderListFull({ orders, technicians }: AdminOrderListFullPr
     
     // Header
     doc.setFontSize(20);
-    doc.text("Laporan Pemasukan CleanPro", 14, 22);
+    doc.text("Laporan Pemasukan SatSet Cleaning", 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
     doc.text(`Tanggal Cetak: ${new Date().toLocaleString("id-ID")}`, 14, 30);
@@ -98,7 +98,7 @@ export function AdminOrderListFull({ orders, technicians }: AdminOrderListFullPr
       footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
     });
 
-    doc.save(`Laporan_Pemasukan_CleanPro_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`Laporan_Pemasukan_SatSet Cleaning_${new Date().toISOString().split('T')[0]}.pdf`);
     toast.success("Laporan berhasil diunduh");
   };
 

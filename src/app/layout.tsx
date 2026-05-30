@@ -11,12 +11,12 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "CleanPro — Professional Cleaning Services",
+  title: "SatSet Cleaning — Professional Cleaning Services",
   description:
     "Book trusted, professional cleaning services for your home or office. Fast, reliable, and affordable cleaning tailored to your needs.",
   keywords: ["cleaning service", "home cleaning", "office cleaning", "professional cleaners"],
   openGraph: {
-    title: "CleanPro — Professional Cleaning Services",
+    title: "SatSet Cleaning — Professional Cleaning Services",
     description: "Book trusted, professional cleaning services for your home or office.",
     type: "website",
   },

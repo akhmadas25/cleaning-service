@@ -30,6 +30,15 @@ export async function createOrder(values: CreateOrderInput) {
       initialPrice += estimatedHours * (pricing?.pricePerHour || 0);
     }
 
+    const orderCount = await prisma.order.count({
+      where: { userId: session.user.id }
+    });
+    const isFirstOrder = orderCount === 0;
+
+    if (isFirstOrder) {
+      initialPrice = initialPrice * 0.8;
+    }
+
     await prisma.order.create({
       data: {
         userId: session.user.id,
@@ -70,5 +79,20 @@ export async function getOrderLocation(orderId: string) {
     return { success: order };
   } catch (error) {
     return { error: "Failed to fetch location" };
+  }
+}
+
+export async function checkIsFirstOrder() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return false;
+
+    const count = await prisma.order.count({
+      where: { userId: session.user.id }
+    });
+
+    return count === 0;
+  } catch (error) {
+    return false;
   }
 }

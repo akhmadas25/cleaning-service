@@ -8,7 +8,7 @@ const testimonials = [
     role: "Pemilik Rumah",
     initials: "SM",
     rating: 5,
-    text: "CleanPro mengubah rumah saya. Timnya profesional, teliti, dan sangat ramah. Saya selalu pulang ke rumah yang tanpa noda — saya sangat senang!",
+    text: "SatSet Cleaning mengubah rumah saya. Timnya profesional, teliti, dan sangat ramah. Saya selalu pulang ke rumah yang tanpa noda — saya sangat senang!",
     color: "bg-blue-100 text-blue-700",
   },
   {
@@ -16,7 +16,7 @@ const testimonials = [
     role: "Manajer Kantor",
     initials: "JO",
     rating: 5,
-    text: "Kami beralih ke CleanPro untuk pembersihan kantor enam bulan lalu dan perbedaannya luar biasa. Timnya dapat diandalkan, efisien, dan memperhatikan setiap detail.",
+    text: "Kami beralih ke SatSet Cleaning untuk pembersihan kantor enam bulan lalu dan perbedaannya luar biasa. Timnya dapat diandalkan, efisien, dan memperhatikan setiap detail.",
     color: "bg-violet-100 text-violet-700",
   },
   {
@@ -40,7 +40,7 @@ const testimonials = [
     role: "Pemilik Restoran",
     initials: "LC",
     rating: 5,
-    text: "Sebagai pemilik restoran, kebersihan adalah segalanya. CleanPro memahaminya. Tim komersial mereka cepat, teliti, dan selalu menghormati jam bisnis kami.",
+    text: "Sebagai pemilik restoran, kebersihan adalah segalanya. SatSet Cleaning memahaminya. Tim komersial mereka cepat, teliti, dan selalu menghormati jam bisnis kami.",
     color: "bg-rose-100 text-rose-700",
   },
   {
@@ -48,7 +48,7 @@ const testimonials = [
     role: "Pengembang Properti",
     initials: "DB",
     rating: 5,
-    text: "Pembersihan pasca renovasi selalu menjadi mimpi buruk — kecuali jika Anda memanggil CleanPro. Mereka menangani kompleks 12 unit kami dengan sempurna. Akan menggunakan mereka di setiap proyek.",
+    text: "Pembersihan pasca renovasi selalu menjadi mimpi buruk — kecuali jika Anda memanggil SatSet Cleaning. Mereka menangani kompleks 12 unit kami dengan sempurna. Akan menggunakan mereka di setiap proyek.",
     color: "bg-cyan-100 text-cyan-700",
   },
 ];

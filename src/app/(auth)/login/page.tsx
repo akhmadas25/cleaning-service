@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/LoginForm";
 
 export const metadata: Metadata = {
-  title: "Masuk — CleanPro",
-  description: "Masuk ke akun CleanPro Anda untuk mengelola pesanan dan layanan.",
+  title: "Masuk — SatSet Cleaning",
+  description: "Masuk ke akun SatSet Cleaning Anda untuk mengelola pesanan dan layanan.",
 };
 
 export default function LoginPage() {
