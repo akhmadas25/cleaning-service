@@ -99,13 +99,7 @@ export function LoginForm() {
                     <FormLabel className="text-slate-700 font-medium">
                       Kata sandi
                     </FormLabel>
-                    <Link
-                      href="/forgot-password"
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      Lupa kata sandi?
-                    </Link>
-                  </div>
+                    </div>
                   <FormControl>
                     <div className="relative">
                       <Input
