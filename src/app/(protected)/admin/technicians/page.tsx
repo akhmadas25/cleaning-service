@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { logoutUser } from "@/lib/actions/auth";
 import { AddTechnicianModal } from "@/components/admin/AddTechnicianModal";
+import { EditTechnicianModal } from "@/components/admin/EditTechnicianModal";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -156,9 +157,7 @@ export default async function AdminTechniciansPage() {
                       {new Date(tech.createdAt).toLocaleDateString("id-ID")}
                     </div>
                     <div className="pt-2 flex gap-2">
-                      <button className="flex-1 px-3 py-1.5 border border-slate-200 rounded text-xs font-medium hover:bg-slate-50 transition-colors">
-                        Edit
-                      </button>
+                      <EditTechnicianModal technician={tech} />
                       <button className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded transition-colors">
                         <LogOut className="w-3.5 h-3.5" />
                       </button>

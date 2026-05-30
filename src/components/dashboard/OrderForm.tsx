@@ -50,6 +50,8 @@ export function OrderForm() {
   const [pricing, setPricing] = useState<PricingInfo | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
   const [loadingPricing, setLoadingPricing] = useState(false);
+  const [panjang, setPanjang] = useState<number | undefined>();
+  const [lebar, setLebar] = useState<number | undefined>();
 
   const form = useForm<CreateOrderInput>({
     resolver: zodResolver(createOrderSchema),
@@ -67,6 +69,14 @@ export function OrderForm() {
   const watchServiceType = form.watch("serviceType");
   const watchAreaSqm = form.watch("areaSqm");
   const watchHours = form.watch("estimatedHours");
+
+  useEffect(() => {
+    if (panjang !== undefined && lebar !== undefined) {
+      form.setValue("areaSqm", panjang * lebar);
+    } else {
+      form.setValue("areaSqm", undefined);
+    }
+  }, [panjang, lebar, form]);
 
   // Fetch pricing saat service type berubah
   useEffect(() => {
@@ -150,29 +160,57 @@ export function OrderForm() {
             />
 
             {useAreaInput ? (
-              <FormField
-                control={form.control}
-                name="areaSqm"
-                render={({ field }) => (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <FormItem>
-                    <FormLabel>Luas Area (m²)</FormLabel>
+                    <FormLabel>Panjang (m)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Contoh: 20"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                        placeholder="Contoh: 5"
+                        value={panjang || ""}
+                        onChange={(e) => setPanjang(e.target.valueAsNumber || undefined)}
                       />
                     </FormControl>
-                    {pricing && pricing.pricePerSqm > 0 && (
-                      <p className="text-xs text-slate-500">
-                        Rp {pricing.pricePerSqm.toLocaleString("id-ID")} / m²
-                      </p>
-                    )}
-                    <FormMessage />
                   </FormItem>
+                  <FormItem>
+                    <FormLabel>Lebar (m)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Contoh: 4"
+                        value={lebar || ""}
+                        onChange={(e) => setLebar(e.target.valueAsNumber || undefined)}
+                      />
+                    </FormControl>
+                  </FormItem>
+                </div>
+                
+                {/* Hidden field for areaSqm validation */}
+                <FormField
+                  control={form.control}
+                  name="areaSqm"
+                  render={({ field }) => (
+                    <FormItem className="hidden">
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {pricing && pricing.pricePerSqm > 0 && (
+                  <p className="text-xs text-slate-500">
+                    Harga: Rp {pricing.pricePerSqm.toLocaleString("id-ID")} / m²
+                    {panjang && lebar ? ` (Total Area: ${panjang * lebar} m²)` : ""}
+                  </p>
                 )}
-              />
+                {form.formState.errors.areaSqm && (
+                  <p className="text-[0.8rem] font-medium text-red-500">
+                    {form.formState.errors.areaSqm.message}
+                  </p>
+                )}
+              </div>
             ) : (
               <FormField
                 control={form.control}
