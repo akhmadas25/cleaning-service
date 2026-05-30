@@ -122,3 +122,40 @@ export async function registerTechnician(data: { name: string, email: string, pa
     return { error: "Terjadi kesalahan saat mendaftarkan teknisi." };
   }
 }
+
+export async function editTechnician(data: { id: string, name: string, email: string, password?: string }) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
+      return { error: "Akses ditolak" };
+    }
+
+    const { id, name, email, password } = data;
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser && existingUser.id !== id) {
+      return { error: "Email sudah digunakan oleh pengguna lain!" };
+    }
+
+    const updateData: any = { name, email };
+
+    if (password && password.trim() !== "") {
+      const bcrypt = await import("bcryptjs");
+      updateData.hashedPassword = await bcrypt.hash(password, 12);
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: updateData,
+    });
+
+    revalidatePath("/admin/technicians");
+    return { success: "Data teknisi berhasil diperbarui!" };
+  } catch (error) {
+    console.error("Edit technician error:", error);
+    return { error: "Terjadi kesalahan saat memperbarui teknisi." };
+  }
+}

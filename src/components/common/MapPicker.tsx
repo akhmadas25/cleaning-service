@@ -10,36 +10,54 @@ interface MapPickerProps {
 
 // Kota Tegal sebagai pusat layanan
 const TEGAL_CENTER = { lat: -6.8697, lng: 109.1257 };
-const MAX_RADIUS_KM = 10;
+const MAX_RADIUS_KM = 20;
 
-function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+function getDistanceKm(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) *
-    Math.cos((lat2 * Math.PI) / 180) *
-    Math.sin(dLng / 2) ** 2;
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export function MapPicker({ onLocationSelect, defaultLocation }: MapPickerProps) {
+export function MapPicker({
+  onLocationSelect,
+  defaultLocation,
+}: MapPickerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const [address, setAddress] = useState("");
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [outOfRange, setOutOfRange] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const isLoadingMapRef = useRef(false);
 
   const initialCenter = defaultLocation || TEGAL_CENTER;
 
   const isWithinRange = (lat: number, lng: number) => {
-    return getDistanceKm(TEGAL_CENTER.lat, TEGAL_CENTER.lng, lat, lng) <= MAX_RADIUS_KM;
+    return (
+      getDistanceKm(TEGAL_CENTER.lat, TEGAL_CENTER.lng, lat, lng) <=
+      MAX_RADIUS_KM
+    );
   };
 
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
+    if (!mapRef.current || mapInstanceRef.current || isLoadingMapRef.current)
+      return;
+    isLoadingMapRef.current = true;
 
     const initMap = async () => {
       // Guard: jika container sudah punya map Leaflet, skip
@@ -51,9 +69,12 @@ export function MapPicker({ onLocationSelect, defaultLocation }: MapPickerProps)
       // Fix default marker icons
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+        iconRetinaUrl:
+          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+        iconUrl:
+          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+        shadowUrl:
+          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
       });
 
       const map = L.map(mapRef.current!, {
@@ -62,15 +83,16 @@ export function MapPicker({ onLocationSelect, defaultLocation }: MapPickerProps)
         maxZoom: 19,
       }).setView([TEGAL_CENTER.lat, TEGAL_CENTER.lng], 13);
 
-      // Batasi area pan ke sekitar Tegal (bounding box ~15km)
+      // Batasi area pan ke sekitar Tegal (bounding box ~25km)
       const bounds = L.latLngBounds(
-        [TEGAL_CENTER.lat - 0.135, TEGAL_CENTER.lng - 0.145],
-        [TEGAL_CENTER.lat + 0.135, TEGAL_CENTER.lng + 0.145]
+        [TEGAL_CENTER.lat - 0.25, TEGAL_CENTER.lng - 0.25],
+        [TEGAL_CENTER.lat + 0.25, TEGAL_CENTER.lng + 0.25],
       );
       map.setMaxBounds(bounds);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution:
+          '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
 
       // Gambar lingkaran radius 10km
@@ -90,7 +112,9 @@ export function MapPicker({ onLocationSelect, defaultLocation }: MapPickerProps)
         fillColor: "#2563eb",
         fillOpacity: 1,
         weight: 2,
-      }).addTo(map).bindTooltip("Pusat Kota Tegal", { permanent: false });
+      })
+        .addTo(map)
+        .bindTooltip("Pusat Kota Tegal", { permanent: false });
 
       // Marker pilihan user
       const marker = L.marker([initialCenter.lat, initialCenter.lng], {
@@ -108,7 +132,7 @@ export function MapPicker({ onLocationSelect, defaultLocation }: MapPickerProps)
         setOutOfRange(false);
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
           );
           const data = await res.json();
           const addr = data.display_name || "";
@@ -142,6 +166,8 @@ export function MapPicker({ onLocationSelect, defaultLocation }: MapPickerProps)
         marker.setLatLng(e.latlng);
         await reverseGeocode(lat, lng);
       });
+
+      isLoadingMapRef.current = false;
     };
 
     initMap();
@@ -161,48 +187,89 @@ export function MapPicker({ onLocationSelect, defaultLocation }: MapPickerProps)
     const query = (e.target as HTMLInputElement).value;
     if (!query.trim() || !mapInstanceRef.current || !markerRef.current) return;
 
+    setIsSearching(true);
+    setSearchResults([]);
+    setOutOfRange(false);
+
     try {
+      const searchQuery = query.toLowerCase().includes("tegal")
+        ? query
+        : `${query} Tegal`;
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + " Tegal")}&format=json&limit=1`
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=5`,
       );
       const data = await res.json();
-      if (data[0]) {
-        const lat = parseFloat(data[0].lat);
-        const lng = parseFloat(data[0].lon);
-
-        if (!isWithinRange(lat, lng)) {
-          setOutOfRange(true);
-          return;
-        }
-
-        const addr = data[0].display_name;
-        mapInstanceRef.current.setView([lat, lng], 16);
-        markerRef.current.setLatLng([lat, lng]);
-        setAddress(addr);
-        setCoords({ lat, lng });
-        setOutOfRange(false);
-        onLocationSelect(lat, lng, addr);
-      } else {
+      setSearchResults(data);
+      if (data.length === 0) {
         setOutOfRange(true);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("Search error:", err);
+    } finally {
+      setIsSearching(false);
     }
+  };
+
+  const handleSelectResult = async (result: any) => {
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+
+    if (!isWithinRange(lat, lng)) {
+      setOutOfRange(true);
+      setSearchResults([]);
+      return;
+    }
+
+    const addr = result.display_name;
+    mapInstanceRef.current.setView([lat, lng], 16);
+    markerRef.current.setLatLng([lat, lng]);
+    setAddress(addr);
+    setCoords({ lat, lng });
+    setOutOfRange(false);
+    setSearchResults([]); // close dropdown
+    onLocationSelect(lat, lng, addr);
   };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
         <MapPin className="w-3 h-3 shrink-0" />
-        <span>Layanan tersedia dalam radius <strong>10 km</strong> dari Kota Tegal</span>
+        <span>
+          Layanan tersedia dalam radius <strong>20 km</strong> dari Kota Tegal
+        </span>
       </div>
 
-      <input
-        type="text"
-        placeholder="Cari nama jalan / kelurahan di Tegal, lalu tekan Enter..."
-        className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-        onKeyDown={handleSearch}
-      />
+      <div className="relative z-[1000]">
+        <input
+          type="text"
+          placeholder="Cari nama jalan / kelurahan di Tegal, lalu tekan Enter..."
+          className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm relative z-[1000]"
+          onKeyDown={handleSearch}
+        />
+
+        {isSearching && (
+          <div className="absolute w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg p-3 text-sm text-slate-500 z-[1000]">
+            Mencari...
+          </div>
+        )}
+
+        {searchResults.length > 0 && (
+          <ul className="absolute w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto z-[1000]">
+            {searchResults.map((result, i) => (
+              <li
+                key={i}
+                className="px-4 py-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 text-sm"
+                onClick={() => handleSelectResult(result)}
+              >
+                <div className="font-medium text-slate-700">{result.name}</div>
+                <div className="text-xs text-slate-500 line-clamp-1">
+                  {result.display_name}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <div
         ref={mapRef}
@@ -212,19 +279,25 @@ export function MapPicker({ onLocationSelect, defaultLocation }: MapPickerProps)
       {outOfRange && (
         <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 border border-red-100">
           <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />
-          <span>Lokasi di luar jangkauan layanan (radius 10 km Kota Tegal). Silakan pilih lokasi lain.</span>
+          <span>
+            Lokasi di luar jangkauan layanan (radius 20 km Kota Tegal). Silakan
+            pilih lokasi lain.
+          </span>
         </div>
       )}
 
       {coords && !outOfRange && (
         <div className="flex items-start gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2">
           <MapPin className="w-3 h-3 mt-0.5 shrink-0 text-blue-500" />
-          <span className="line-clamp-2">{address || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`}</span>
+          <span className="line-clamp-2">
+            {address || `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`}
+          </span>
         </div>
       )}
 
       <p className="text-xs text-slate-400">
-        💡 Klik peta atau seret <span className="font-medium">marker biru</span> untuk menentukan lokasi tepat.
+        💡 Klik peta atau seret <span className="font-medium">marker biru</span>{" "}
+        untuk menentukan lokasi tepat.
       </p>
     </div>
   );

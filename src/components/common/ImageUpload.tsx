@@ -51,7 +51,8 @@ export function ImageUpload({ onChange, onRemove, value }: ImageUploadProps) {
         onSuccess={onSuccess}
         uploadPreset={uploadPreset}
         options={{
-          maxFiles: 1
+          maxFiles: 1,
+          sources: ["local", "camera"],
         }}
       >
         {({ open }) => {
