@@ -26,28 +26,29 @@ const sidebarLinks = [
 ];
 
 export default async function AdminDashboardPage() {
-  const session = await auth();
-  if (!session?.user?.id || session.user.role !== "ADMIN") {
-    redirect("/dashboard");
-  }
+  try {
+    const session = await auth();
+    if (!session?.user?.id || session.user.role !== "ADMIN") {
+      redirect("/dashboard");
+    }
 
-  const userInitials = session.user?.name
-    ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+    const userInitials = session.user?.name
+      ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
-  const [orders, techData] = await Promise.all([
-    prisma.order.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: { select: { name: true, email: true } },
-        technician: { select: { name: true, email: true } },
-        items: true
-      },
-    }),
-    prisma.user.findMany({
-      where: { role: "TECHNICIAN" },
-      select: { id: true, name: true, email: true },
-    }),
-  ]);
+    const [orders, techData] = await Promise.all([
+      prisma.order.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: { select: { name: true, email: true } },
+          technician: { select: { name: true, email: true } },
+          items: true
+        },
+      }),
+      prisma.user.findMany({
+        where: { role: "TECHNICIAN" },
+        select: { id: true, name: true, email: true },
+      }),
+    ]);
 
   const pendingCount   = orders.filter((o) => o.status === "PENDING").length;
   const activeCount    = orders.filter((o) => ["ASSIGNED","ON_THE_WAY","IN_PROGRESS"].includes(o.status)).length;
@@ -139,5 +140,18 @@ export default async function AdminDashboardPage() {
         </main>
       </div>
     </div>
-  );
+    );
+  } catch (error: any) {
+    return (
+      <div className="p-8 bg-red-50 min-h-screen">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Production Error Debugger</h1>
+        <pre className="bg-white p-4 rounded border whitespace-pre-wrap font-mono text-sm">
+          {error?.message || String(error)}
+        </pre>
+        <pre className="bg-white p-4 rounded border whitespace-pre-wrap font-mono text-xs mt-4">
+          {error?.stack}
+        </pre>
+      </div>
+    );
+  }
 }
