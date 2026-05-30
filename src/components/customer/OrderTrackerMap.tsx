@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { Loader2, MapPin, Navigation } from "lucide-react";
+
 
 // Icons
 import { getOrderLocation } from "@/lib/actions/order";
@@ -39,6 +39,7 @@ export default function OrderTrackerMap({ orderId, destLat, destLng, initialTech
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     setIcons({
       dest: L.icon({

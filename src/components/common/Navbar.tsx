@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
@@ -11,8 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { logoutUser } from "@/lib/actions/auth";
-import { Menu, X, Sparkles, LogOut, LayoutDashboard, User } from "lucide-react";
+
+import { Menu, X, LogOut, LayoutDashboard, User } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Beranda", isHome: true },

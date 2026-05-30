@@ -87,8 +87,6 @@ model Order {
   id                  String      @id @default(cuid())
   userId              String
   technicianId        String?
-  serviceType         ServiceType
-  
   name                String
   phone               String
   
@@ -99,8 +97,7 @@ model Order {
   technicianLat       Float?
   technicianLng       Float?
   
-  areaSqm             Float?
-  estimatedHours      Float?
+  items               OrderItem[]
   
   customerPhotoUrl    String?     @db.Text
   status              OrderStatus @default(PENDING)
@@ -114,6 +111,17 @@ model Order {
   
   user                User        @relation("CustomerOrders", fields: [userId], references: [id])
   technician          User?       @relation("TechnicianOrders", fields: [technicianId], references: [id])
+}
+
+model OrderItem {
+  id              String      @id @default(cuid())
+  orderId         String
+  serviceType     ServiceType
+  areaSqm         Float?
+  estimatedHours  Float?
+  price           Float
+  
+  order           Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 enum ServiceType {

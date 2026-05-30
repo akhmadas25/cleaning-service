@@ -15,6 +15,7 @@ export default function OrderMapPreview({ lat, lng }: OrderMapPreviewProps) {
   const [icon, setIcon] = useState<L.Icon | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     setIcon(L.icon({
       iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",

@@ -4,7 +4,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { ServicesSection } from "@/components/landing/ServicesSection";
 import { StatsSection } from "@/components/landing/StatsSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
-import { Button } from "@/components/ui/button";
+
 import Link from "next/link";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import type { Metadata } from "next";

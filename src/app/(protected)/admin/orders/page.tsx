@@ -1,8 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import {
-  Sparkles, LayoutDashboard, User, ClipboardList, LogOut, Settings, Users
+  LayoutDashboard, ClipboardList, LogOut, Settings, Users
 } from "lucide-react";
 import Link from "next/link";
 import { logoutUser } from "@/lib/actions/auth";
@@ -29,7 +30,8 @@ export default async function AdminOrdersPage() {
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: "desc" },
     include: {
-      technician: { select: { name: true } }
+      technician: { select: { name: true } },
+      items: true
     }
   });
 

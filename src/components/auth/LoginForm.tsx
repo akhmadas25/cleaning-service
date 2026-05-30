@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 import { loginUser } from "@/lib/actions/auth";

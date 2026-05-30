@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -5,8 +7,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Sparkles, LayoutDashboard, Calendar,
-  Settings, LogOut, Home, TrendingUp, ClipboardList, PlusCircle,
+  LayoutDashboard, Calendar,
+  LogOut, Home, TrendingUp, ClipboardList, PlusCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { logoutUser } from "@/lib/actions/auth";
@@ -46,6 +48,7 @@ export default async function CustomerDashboardPage() {
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
     take: 5,
+    include: { items: true },
   });
 
   const totalOrders   = orders.length;
@@ -187,7 +190,7 @@ export default async function CustomerDashboardPage() {
                     return (
                       <div key={order.id} className="py-3 flex items-center justify-between gap-4">
                         <div className="min-w-0">
-                          <p className="font-medium text-slate-800 text-sm">{order.serviceType}</p>
+                          <p className="font-medium text-slate-800 text-sm">{order.items?.map((i: any) => i.serviceType).join(", ") || "Layanan"}</p>
                           <p className="text-xs text-slate-500 truncate">{order.address}</p>
                           <p className="text-xs text-slate-400 mt-0.5">
                             {new Date(order.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}

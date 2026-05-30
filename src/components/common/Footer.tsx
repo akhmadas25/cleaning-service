@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { Sparkles, Mail, Phone, MapPin } from "lucide-react";
 
@@ -59,7 +60,7 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>Jl. KH Abu Su'ud Sutapranan, Dukuhturi, Tegal</span>
+                <span>Jl. KH Abu Su&apos;ud Sutapranan, Dukuhturi, Tegal</span>
               </div>
             </div>
             <div className="flex items-center gap-3">

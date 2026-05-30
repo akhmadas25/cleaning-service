@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -5,13 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Sparkles,
   LayoutDashboard,
   ClipboardList,
   Users,
-  Settings,
   LogOut,
-  UserPlus,
   Mail,
   Shield,
 } from "lucide-react";

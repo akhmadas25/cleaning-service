@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useTransition } from "react";
@@ -105,7 +106,9 @@ export function TechnicianTaskList({ tasks }: { tasks: any[] }) {
                       <Badge className={`text-[10px] uppercase font-bold px-2 py-0.5 border ${statusColors[task.status]}`}>
                         {task.status}
                       </Badge>
-                      <h3 className="font-black text-xl text-slate-900 mt-1">{task.serviceType}</h3>
+                      <h3 className="font-black text-xl text-slate-900 mt-1">
+                        {task.items?.map((i: any) => i.serviceType).join(", ") || "Layanan"}
+                      </h3>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-slate-400 uppercase font-bold">Estimasi</p>

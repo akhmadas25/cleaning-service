@@ -10,7 +10,7 @@ const createPrismaClient = () => {
   if (!dbUrl) return new PrismaClient({ log: ["query"] });
 
   try {
-    let config: any;
+    let config: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     try {
       const url = new URL(dbUrl.replace("mysql:", "http:").replace("mysqls:", "https:"));
       config = {
@@ -25,7 +25,7 @@ const createPrismaClient = () => {
       const regex = /mysqls?:\/\/([^:]+):(.+)@([^:/]+)(?::(\d+))?\/([^?]+)/;
       const match = dbUrl.match(regex);
       if (match) {
-        const [_, user, password, host, port, database] = match;
+        const [, user, password, host, port, database] = match;
         config = {
           host,
           port: port ? parseInt(port) : 3306,

@@ -15,19 +15,33 @@ export async function createOrder(values: CreateOrderInput) {
 
     const { 
       name, phone, address, latitude, longitude, 
-      serviceType, areaSqm, estimatedHours, customerPhotoUrl 
+      items, customerPhotoUrl 
     } = validatedFields.data;
 
-    // Hitung estimasi harga lagi di server untuk keamanan
-    const pricing = await prisma.servicePricing.findUnique({
-      where: { serviceType }
-    });
+    let initialPrice = 0;
+    const orderItemsData = [];
 
-    let initialPrice = pricing?.basePrice || 0;
-    if (["RUMPUT", "RUANGAN", "GUDANG"].includes(serviceType) && areaSqm) {
-      initialPrice += areaSqm * (pricing?.pricePerSqm || 0);
-    } else if (serviceType === "TOILET" && estimatedHours) {
-      initialPrice += estimatedHours * (pricing?.pricePerHour || 0);
+    for (const item of items) {
+      const pricing = await prisma.servicePricing.findUnique({
+        where: { serviceType: item.serviceType }
+      });
+      
+      let itemPrice = pricing?.basePrice || 0;
+      const areaSqm = (item.panjang && item.lebar) ? (item.panjang * item.lebar) : 0;
+      if (["RUMPUT", "RUANGAN", "GUDANG"].includes(item.serviceType) && areaSqm > 0) {
+        itemPrice += areaSqm * (pricing?.pricePerSqm || 0);
+      } else if (item.serviceType === "TOILET" && item.estimatedHours) {
+        itemPrice += item.estimatedHours * (pricing?.pricePerHour || 0);
+      }
+      
+      initialPrice += itemPrice;
+      
+      orderItemsData.push({
+        serviceType: item.serviceType,
+        areaSqm: areaSqm > 0 ? areaSqm : null,
+        estimatedHours: item.estimatedHours,
+        price: itemPrice,
+      });
     }
 
     const orderCount = await prisma.order.count({
@@ -47,18 +61,18 @@ export async function createOrder(values: CreateOrderInput) {
         address,
         latitude,
         longitude,
-        serviceType,
-        areaSqm,
-        estimatedHours,
         customerPhotoUrl,
         initialPrice,
         status: "PENDING",
+        items: {
+          create: orderItemsData,
+        }
       },
     });
 
     revalidatePath("/dashboard/orders");
     return { success: "Pesanan berhasil dibuat!" };
-  } catch (error) {
+  } catch {
     console.error("Create order error:", error);
     return { error: "Terjadi kesalahan saat membuat pesanan" };
   }
@@ -77,7 +91,7 @@ export async function getOrderLocation(orderId: string) {
       }
     });
     return { success: order };
-  } catch (error) {
+  } catch {
     return { error: "Failed to fetch location" };
   }
 }
@@ -92,7 +106,7 @@ export async function checkIsFirstOrder() {
     });
 
     return count === 0;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

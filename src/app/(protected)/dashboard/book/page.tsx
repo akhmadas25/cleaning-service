@@ -1,11 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { OrderForm } from "@/components/dashboard/OrderForm";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Sparkles, LayoutDashboard, PlusCircle, ClipboardList, LogOut,
-} from "lucide-react";
+import { LayoutDashboard, LogOut, PlusCircle, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { logoutUser } from "@/lib/actions/auth";
 import type { Metadata } from "next";

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useTransition } from "react";
@@ -6,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Download, Search, Filter, CalendarDays, User, MapPin, ExternalLink } from "lucide-react";
+import { Loader2, Download, Search, CalendarDays, User, MapPin, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { jsPDF } from "jspdf";
@@ -38,11 +39,12 @@ export function AdminOrderListFull({ orders, technicians }: AdminOrderListFullPr
   const [selectedTechs, setSelectedTechs] = useState<Record<string, string>>({});
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredOrders = orders.filter(o => 
-    o.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.serviceType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.address.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = orders.filter(o => {
+    const serviceString = o.items?.map((i: any) => i.serviceType).join(" ") || "";
+    return o.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    serviceString.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.address.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const handleAssign = (orderId: string) => {
     const techId = selectedTechs[orderId];
@@ -84,7 +86,7 @@ export function AdminOrderListFull({ orders, technicians }: AdminOrderListFullPr
       i + 1,
       new Date(o.createdAt).toLocaleDateString("id-ID"),
       o.name,
-      o.serviceType,
+      o.items?.map((item: any) => item.serviceType).join(", ") || "-",
       o.technician?.name || "-",
       `Rp ${(o.finalPrice || o.initialPrice || 0).toLocaleString("id-ID")}`
     ]);
@@ -98,7 +100,7 @@ export function AdminOrderListFull({ orders, technicians }: AdminOrderListFullPr
       footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
     });
 
-    doc.save(`Laporan_Pemasukan_SatSet Cleaning_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`Laporan_Pemasukan_SatSet_Cleaning_${new Date().toISOString().split('T')[0]}.pdf`);
     toast.success("Laporan berhasil diunduh");
   };
 
@@ -132,6 +134,7 @@ export function AdminOrderListFull({ orders, technicians }: AdminOrderListFullPr
         ) : (
           filteredOrders.map(order => {
             const s = statusMap[order.status] || { label: order.status, color: "bg-slate-100 text-slate-800" };
+            const serviceTitles = order.items?.map((i: any) => i.serviceType).join(", ") || "Layanan";
             return (
               <Card key={order.id} className="overflow-hidden border-0 shadow-sm hover:shadow-md transition-all group">
                 <CardContent className="p-0">
@@ -164,7 +167,7 @@ export function AdminOrderListFull({ orders, technicians }: AdminOrderListFullPr
                         <div className="flex justify-between items-start mb-3">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-bold text-base text-slate-900">{order.serviceType}</h3>
+                              <h3 className="font-bold text-base text-slate-900">{serviceTitles}</h3>
                               <Badge className={`text-[9px] h-4 leading-none uppercase font-black border-0 px-1.5 ${s.color}`}>{s.label}</Badge>
                             </div>
                             <div className="flex items-center gap-2 text-[11px] text-slate-400">

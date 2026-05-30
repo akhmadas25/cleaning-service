@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -8,7 +9,6 @@ import {
   MapPin,
   Clock,
   CalendarDays,
-  PlusCircle,
   X,
   CheckCircle2,
   User,
@@ -21,8 +21,6 @@ import Image from "next/image";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import dynamic from "next/dynamic";
 
@@ -87,6 +85,7 @@ export function CustomerOrderList({ orders }: CustomerOrderListProps) {
           color: "bg-slate-100 text-slate-800",
           icon: Info,
         };
+        const serviceTitles = order.items?.map((i: any) => i.serviceType).join(", ") || "Layanan";
         return (
           <Card
             key={order.id}
@@ -107,7 +106,7 @@ export function CustomerOrderList({ orders }: CustomerOrderListProps) {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="font-bold text-lg text-slate-900">
-                      {order.serviceType}
+                      {serviceTitles}
                     </h3>
                     <div className="flex items-center gap-4 mt-1 text-xs text-slate-400">
                       <span className="flex items-center gap-1">
@@ -160,7 +159,7 @@ export function CustomerOrderList({ orders }: CustomerOrderListProps) {
                       </button>
                     )}
                     <a
-                      href={`https://wa.me/6281337418441?text=Halo CS SatSet Cleaning, saya ${order.name} ingin bertanya tentang pesanan saya untuk layanan ${order.serviceType} di alamat ${order.address}`}
+                      href={`https://wa.me/6281337418441?text=Halo CS SatSet Cleaning, saya ${order.name} ingin bertanya tentang pesanan saya untuk layanan ${serviceTitles} di alamat ${order.address}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[10px] font-bold text-green-600 hover:bg-green-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-green-200"
@@ -208,7 +207,7 @@ export function CustomerOrderList({ orders }: CustomerOrderListProps) {
                     {statusMap[selectedOrder.status]?.label}
                   </Badge>
                   <h2 className="text-xl font-black text-white drop-shadow-md">
-                    {selectedOrder.serviceType}
+                    {selectedOrder.items?.map((i: any) => i.serviceType).join(", ")}
                   </h2>
                 </div>
                 <button
@@ -251,17 +250,27 @@ export function CustomerOrderList({ orders }: CustomerOrderListProps) {
                       )}
                     </p>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="text-[9px] text-slate-400 uppercase font-black mb-1">
-                      Ukuran/Durasi
-                    </p>
-                    <p className="text-xs font-bold text-slate-700 flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-blue-500" />
-                      {selectedOrder.areaSqm
-                        ? `${selectedOrder.areaSqm} m²`
-                        : `${selectedOrder.estimatedHours} Jam`}
-                    </p>
-                  </div>
+                </div>
+
+                {/* Items List */}
+                <div className="space-y-3">
+                  <p className="text-[9px] text-slate-400 uppercase font-black mb-1">Detail Layanan</p>
+                  {selectedOrder.items?.map((item: any) => (
+                    <div key={item.id} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
+                      <div>
+                        <p className="text-xs font-bold text-slate-700 flex items-center gap-2">
+                          <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                          {item.serviceType}
+                        </p>
+                        <p className="text-[10px] text-slate-500 mt-1">
+                          {item.areaSqm ? `${item.areaSqm} m²` : `${item.estimatedHours} Jam`}
+                        </p>
+                      </div>
+                      <p className="text-xs font-bold text-blue-600">
+                        Rp {item.price.toLocaleString("id-ID")}
+                      </p>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="space-y-4">

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { createOrderSchema, type CreateOrderInput } from "@/lib/validations/order";
 import { createOrder, checkIsFirstOrder } from "@/lib/actions/order";
 import { getServicePricing } from "@/lib/actions/pricing";
-import { ServiceType } from "@prisma/client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,15 +28,10 @@ import {
 } from "@/components/ui/select";
 import { MapPicker } from "@/components/common/MapPicker";
 import { ImageUpload } from "@/components/common/ImageUpload";
-import { Loader2, Calculator, Info } from "lucide-react";
+import { Loader2, Calculator, Info, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-const SERVICE_LABELS: Record<string, string> = {
-  TOILET: "Pembersihan Toilet",
-  RUMPUT: "Potong Rumput",
-  RUANGAN: "Pembersihan Ruangan",
-  GUDANG: "Pembersihan Gudang",
-};
+
 
 interface PricingInfo {
   basePrice: number;
@@ -47,15 +42,30 @@ interface PricingInfo {
 export function OrderForm() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const [pricing, setPricing] = useState<PricingInfo | null>(null);
+  const [pricingMap, setPricingMap] = useState<Record<string, PricingInfo>>({});
   const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
   const [loadingPricing, setLoadingPricing] = useState(false);
-  const [panjang, setPanjang] = useState<number | undefined>();
-  const [lebar, setLebar] = useState<number | undefined>();
   const [isFirstOrder, setIsFirstOrder] = useState(false);
 
   useEffect(() => {
     checkIsFirstOrder().then(setIsFirstOrder);
+    
+    // Fetch all pricing up front
+    setLoadingPricing(true);
+    Promise.all([
+      getServicePricing("TOILET"),
+      getServicePricing("RUMPUT"),
+      getServicePricing("RUANGAN"),
+      getServicePricing("GUDANG"),
+    ]).then(([t, rp, ru, g]) => {
+      setPricingMap({
+        TOILET: t as PricingInfo,
+        RUMPUT: rp as PricingInfo,
+        RUANGAN: ru as PricingInfo,
+        GUDANG: g as PricingInfo,
+      });
+      setLoadingPricing(false);
+    });
   }, []);
 
   const form = useForm<CreateOrderInput>({
@@ -64,55 +74,38 @@ export function OrderForm() {
       name: "",
       phone: "",
       address: "",
-      serviceType: "TOILET" as ServiceType,
-      areaSqm: undefined,
-      estimatedHours: undefined,
+      items: [{ serviceType: "TOILET", panjang: undefined, lebar: undefined, estimatedHours: undefined }],
       customerPhotoUrl: "",
     },
   });
 
-  const watchServiceType = form.watch("serviceType");
-  const watchAreaSqm = form.watch("areaSqm");
-  const watchHours = form.watch("estimatedHours");
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const watchItems = form.watch("items");
+
+  // Calculate estimated price
   useEffect(() => {
-    if (panjang !== undefined && lebar !== undefined) {
-      form.setValue("areaSqm", panjang * lebar);
-    } else {
-      form.setValue("areaSqm", undefined);
-    }
-  }, [panjang, lebar, form]);
+    if (Object.keys(pricingMap).length === 0) return;
 
-  // Fetch pricing saat service type berubah
-  useEffect(() => {
-    if (!watchServiceType) return;
-    setLoadingPricing(true);
-    setEstimatedPrice(null);
-    setPricing(null);
+    let total = 0;
+    for (const item of watchItems) {
+      if (!item) continue;
+      const p = pricingMap[item.serviceType];
+      if (!p) continue;
 
-    getServicePricing(watchServiceType as ServiceType).then((p) => {
-      if (p) {
-        setPricing({
-          basePrice: p.basePrice,
-          pricePerSqm: p.pricePerSqm,
-          pricePerHour: p.pricePerHour,
-        });
+      let itemTotal = p.basePrice || 0;
+      const useArea = ["RUMPUT", "RUANGAN", "GUDANG"].includes(item.serviceType);
+      
+      if (useArea && item.panjang && item.lebar && item.panjang > 0 && item.lebar > 0) {
+        itemTotal += (item.panjang * item.lebar) * p.pricePerSqm;
+      } else if (item.serviceType === "TOILET" && item.estimatedHours && item.estimatedHours > 0) {
+        itemTotal += item.estimatedHours * p.pricePerHour;
       }
-      setLoadingPricing(false);
-    });
-  }, [watchServiceType]);
-
-  // Hitung estimasi harga saat input berubah
-  useEffect(() => {
-    if (!pricing) { setEstimatedPrice(null); return; }
-
-    let total = pricing.basePrice;
-
-    const useArea = ["RUMPUT", "RUANGAN", "GUDANG"].includes(watchServiceType);
-    if (useArea && watchAreaSqm && watchAreaSqm > 0) {
-      total += watchAreaSqm * pricing.pricePerSqm;
-    } else if (watchServiceType === "TOILET" && watchHours && watchHours > 0) {
-      total += watchHours * pricing.pricePerHour;
+      total += itemTotal;
     }
 
     if (isFirstOrder && total > 0) {
@@ -120,7 +113,7 @@ export function OrderForm() {
     }
 
     setEstimatedPrice(total > 0 ? total : null);
-  }, [pricing, watchAreaSqm, watchHours, watchServiceType, isFirstOrder]);
+  }, [watchItems, pricingMap, isFirstOrder]);
 
   function onSubmit(values: CreateOrderInput) {
     startTransition(async () => {
@@ -134,117 +127,146 @@ export function OrderForm() {
     });
   }
 
-  const useAreaInput = ["RUMPUT", "RUANGAN", "GUDANG"].includes(watchServiceType);
-
   return (
     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
       <h2 className="text-2xl font-bold text-slate-900 mb-6">Pesan Layanan Kebersihan</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-          {/* Layanan + Input ukuran */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="serviceType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jenis Layanan</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Layanan" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="TOILET">Pembersihan Toilet</SelectItem>
-                      <SelectItem value="RUMPUT">Potong Rumput</SelectItem>
-                      <SelectItem value="RUANGAN">Pembersihan Ruangan</SelectItem>
-                      <SelectItem value="GUDANG">Pembersihan Gudang</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div className="space-y-4">
+            <h3 className="font-semibold text-slate-800 border-b pb-2">Layanan yang Dipesan</h3>
+            {fields.map((field, index) => {
+              const currentServiceType = watchItems[index]?.serviceType || "TOILET";
+              const useAreaInput = ["RUMPUT", "RUANGAN", "GUDANG"].includes(currentServiceType);
+              const p = pricingMap[currentServiceType];
 
-            {useAreaInput ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormItem>
-                    <FormLabel>Panjang (m)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Contoh: 5"
-                        value={panjang || ""}
-                        onChange={(e) => setPanjang(e.target.valueAsNumber || undefined)}
-                      />
-                    </FormControl>
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Lebar (m)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Contoh: 4"
-                        value={lebar || ""}
-                        onChange={(e) => setLebar(e.target.valueAsNumber || undefined)}
-                      />
-                    </FormControl>
-                  </FormItem>
-                </div>
-                
-                {/* Hidden field for areaSqm validation */}
-                <FormField
-                  control={form.control}
-                  name="areaSqm"
-                  render={({ field }) => (
-                    <FormItem className="hidden">
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                    </FormItem>
+              return (
+                <div key={field.id} className="p-4 bg-slate-50 border border-slate-100 rounded-xl relative">
+                  {fields.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      className="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   )}
-                />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.serviceType`}
+                      render={({ field: selectField }) => (
+                        <FormItem>
+                          <FormLabel>Jenis Layanan</FormLabel>
+                          <Select onValueChange={(val) => {
+                            selectField.onChange(val);
+                            form.setValue(`items.${index}.panjang`, undefined);
+                            form.setValue(`items.${index}.lebar`, undefined);
+                            form.setValue(`items.${index}.estimatedHours`, undefined);
+                          }} defaultValue={selectField.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih Layanan" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="TOILET">Pembersihan Toilet</SelectItem>
+                              <SelectItem value="RUMPUT">Potong Rumput</SelectItem>
+                              <SelectItem value="RUANGAN">Pembersihan Ruangan</SelectItem>
+                              <SelectItem value="GUDANG">Pembersihan Gudang</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                {pricing && pricing.pricePerSqm > 0 && (
-                  <p className="text-xs text-slate-500">
-                    Harga: Rp {pricing.pricePerSqm.toLocaleString("id-ID")} / m²
-                    {panjang && lebar ? ` (Total Area: ${panjang * lebar} m²)` : ""}
-                  </p>
-                )}
-                {form.formState.errors.areaSqm && (
-                  <p className="text-[0.8rem] font-medium text-red-500">
-                    {form.formState.errors.areaSqm.message}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <FormField
-                control={form.control}
-                name="estimatedHours"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estimasi Waktu (Jam)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Contoh: 2"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber || undefined)}
+                    {useAreaInput ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.panjang`}
+                          render={({ field: inputField }) => (
+                            <FormItem>
+                              <FormLabel>Panjang (m)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Contoh: 5"
+                                  {...inputField}
+                                  onChange={(e) => inputField.onChange(e.target.valueAsNumber || undefined)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.lebar`}
+                          render={({ field: inputField }) => (
+                            <FormItem>
+                              <FormLabel>Lebar (m)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Contoh: 4"
+                                  {...inputField}
+                                  onChange={(e) => inputField.onChange(e.target.valueAsNumber || undefined)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        {p && p.pricePerSqm > 0 && (
+                          <div className="col-span-2 mt-[-8px]">
+                            <p className="text-xs text-slate-500">
+                              Harga: Rp {p.pricePerSqm.toLocaleString("id-ID")} / m²
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.estimatedHours`}
+                        render={({ field: inputField }) => (
+                          <FormItem>
+                            <FormLabel>Estimasi Waktu (Jam)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="Contoh: 2"
+                                {...inputField}
+                                onChange={(e) => inputField.onChange(e.target.valueAsNumber || undefined)}
+                              />
+                            </FormControl>
+                            {p && p.pricePerHour > 0 && (
+                              <p className="text-xs text-slate-500">
+                                Rp {p.pricePerHour.toLocaleString("id-ID")} / jam
+                              </p>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    {pricing && pricing.pricePerHour > 0 && (
-                      <p className="text-xs text-slate-500">
-                        Rp {pricing.pricePerHour.toLocaleString("id-ID")} / jam
-                      </p>
                     )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+                  </div>
+                </div>
+              );
+            })}
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-dashed"
+              onClick={() => append({ serviceType: "TOILET", panjang: undefined, lebar: undefined, estimatedHours: undefined })}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Tambah Layanan Lainnya
+            </Button>
           </div>
 
           {/* Box Estimasi Harga */}
@@ -255,7 +277,7 @@ export function OrderForm() {
           }`}>
             <div className="flex items-center gap-2 mb-1">
               <Calculator className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-semibold text-slate-700">Estimasi Biaya</span>
+              <span className="text-sm font-semibold text-slate-700">Total Estimasi Biaya</span>
               {isFirstOrder && (
                 <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] uppercase tracking-wider font-bold rounded-full">
                   Diskon 20%
@@ -267,11 +289,6 @@ export function OrderForm() {
               <div className="flex items-center gap-2 text-slate-400 text-sm">
                 <Loader2 className="w-3 h-3 animate-spin" />
                 Memuat harga...
-              </div>
-            ) : !pricing || (pricing.basePrice === 0 && pricing.pricePerSqm === 0 && pricing.pricePerHour === 0) ? (
-              <div className="flex items-start gap-2 text-slate-500 text-sm">
-                <Info className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>Harga belum diset oleh admin. Tim kami akan menghubungi Anda untuk konfirmasi harga.</span>
               </div>
             ) : estimatedPrice ? (
               <div>
@@ -285,21 +302,10 @@ export function OrderForm() {
                   <Info className="w-3 h-3" />
                   Harga final dapat berubah sesuai kondisi lapangan
                 </p>
-                {pricing.basePrice > 0 && (
-                  <div className="mt-2 text-xs text-slate-500 space-y-0.5">
-                    <p>• Biaya dasar: Rp {pricing.basePrice.toLocaleString("id-ID")}</p>
-                    {useAreaInput && watchAreaSqm && pricing.pricePerSqm > 0 && (
-                      <p>• {watchAreaSqm} m² × Rp {pricing.pricePerSqm.toLocaleString("id-ID")} = Rp {(watchAreaSqm * pricing.pricePerSqm).toLocaleString("id-ID")}</p>
-                    )}
-                    {!useAreaInput && watchHours && pricing.pricePerHour > 0 && (
-                      <p>• {watchHours} jam × Rp {pricing.pricePerHour.toLocaleString("id-ID")} = Rp {(watchHours * pricing.pricePerHour).toLocaleString("id-ID")}</p>
-                    )}
-                  </div>
-                )}
               </div>
             ) : (
               <p className="text-slate-400 text-sm">
-                {useAreaInput ? "Masukkan luas area untuk melihat estimasi harga" : "Masukkan estimasi waktu untuk melihat estimasi harga"}
+                Masukkan detail layanan untuk melihat estimasi harga
               </p>
             )}
           </div>

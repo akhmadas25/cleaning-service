@@ -1,14 +1,12 @@
+/* eslint-disable @next/next/no-img-element */
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Sparkles, LayoutDashboard, Calendar,
-  PlusCircle, ClipboardList, LogOut, MapPin, Clock, CalendarDays,
+  LayoutDashboard,
+  PlusCircle, ClipboardList, LogOut,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { logoutUser } from "@/lib/actions/auth";
 import { CustomerOrderList } from "@/components/dashboard/CustomerOrderList";
@@ -33,7 +31,8 @@ export default async function CustomerOrdersPage() {
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
     include: {
-      technician: { select: { name: true } }
+      technician: { select: { name: true } },
+      items: true
     }
   });
 

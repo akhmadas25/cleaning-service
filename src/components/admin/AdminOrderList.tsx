@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useTransition } from "react";
@@ -50,7 +51,7 @@ export function AdminOrderList({ orders, technicians }: AdminOrderListProps) {
               <div className="flex-1">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="font-bold text-lg">{order.serviceType}</h3>
+                    <h3 className="font-bold text-lg">{order.items?.map((i: any) => i.serviceType).join(", ") || "Layanan"}</h3>
                     <p className="text-sm text-slate-500">
                       Pemesan: {order.name} ({order.phone})
                     </p>

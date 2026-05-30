@@ -1,12 +1,12 @@
+/* eslint-disable @next/next/no-img-element */
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { AdminOrderList } from "@/components/admin/AdminOrderList";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Sparkles, LayoutDashboard, ClipboardList,
+  LayoutDashboard, ClipboardList,
   Users, Settings, LogOut, DollarSign, Clock, CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -40,6 +40,7 @@ export default async function AdminDashboardPage() {
       include: {
         user: { select: { name: true, email: true } },
         technician: { select: { name: true, email: true } },
+        items: true
       },
     }),
     prisma.user.findMany({

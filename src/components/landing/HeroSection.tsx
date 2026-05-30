@@ -1,5 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   return (
