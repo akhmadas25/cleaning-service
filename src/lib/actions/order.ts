@@ -72,7 +72,7 @@ export async function createOrder(values: CreateOrderInput) {
 
     revalidatePath("/dashboard/orders");
     return { success: "Pesanan berhasil dibuat!" };
-  } catch {
+  } catch (error) {
     console.error("Create order error:", error);
     return { error: "Terjadi kesalahan saat membuat pesanan" };
   }
