@@ -10,7 +10,7 @@ import { ArrowRight, CheckCircle } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "CleanPro — Layanan Kebersihan Profesional",
+  title: "SatSet Cleaning — Layanan Kebersihan Profesional",
   description:
     "Pesan layanan kebersihan rumah dan kantor profesional. Dinilai 4.9/5 oleh lebih dari 10.000 pelanggan yang puas. Tersedia di hari yang sama.",
 };

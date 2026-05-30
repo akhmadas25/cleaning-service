@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { createOrderSchema, type CreateOrderInput } from "@/lib/validations/order";
-import { createOrder } from "@/lib/actions/order";
+import { createOrder, checkIsFirstOrder } from "@/lib/actions/order";
 import { getServicePricing } from "@/lib/actions/pricing";
 import { ServiceType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,11 @@ export function OrderForm() {
   const [loadingPricing, setLoadingPricing] = useState(false);
   const [panjang, setPanjang] = useState<number | undefined>();
   const [lebar, setLebar] = useState<number | undefined>();
+  const [isFirstOrder, setIsFirstOrder] = useState(false);
+
+  useEffect(() => {
+    checkIsFirstOrder().then(setIsFirstOrder);
+  }, []);
 
   const form = useForm<CreateOrderInput>({
     resolver: zodResolver(createOrderSchema),
@@ -110,8 +115,12 @@ export function OrderForm() {
       total += watchHours * pricing.pricePerHour;
     }
 
+    if (isFirstOrder && total > 0) {
+      total = total * 0.8;
+    }
+
     setEstimatedPrice(total > 0 ? total : null);
-  }, [pricing, watchAreaSqm, watchHours, watchServiceType]);
+  }, [pricing, watchAreaSqm, watchHours, watchServiceType, isFirstOrder]);
 
   function onSubmit(values: CreateOrderInput) {
     startTransition(async () => {
@@ -247,6 +256,11 @@ export function OrderForm() {
             <div className="flex items-center gap-2 mb-1">
               <Calculator className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-semibold text-slate-700">Estimasi Biaya</span>
+              {isFirstOrder && (
+                <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] uppercase tracking-wider font-bold rounded-full">
+                  Diskon 20%
+                </span>
+              )}
             </div>
 
             {loadingPricing ? (
@@ -264,6 +278,9 @@ export function OrderForm() {
                 <p className="text-2xl font-bold text-blue-600">
                   Rp {estimatedPrice.toLocaleString("id-ID")}
                 </p>
+                {isFirstOrder && (
+                  <p className="text-xs text-green-600 font-medium mt-1">Diskon pengguna baru sebesar 20% telah diterapkan!</p>
+                )}
                 <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
                   <Info className="w-3 h-3" />
                   Harga final dapat berubah sesuai kondisi lapangan

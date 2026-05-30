@@ -16,7 +16,7 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Pesanan Saya — CleanPro",
+  title: "Pesanan Saya — SatSet Cleaning",
 };
 
 const sidebarLinks = [
@@ -46,10 +46,10 @@ export default async function CustomerOrdersPage() {
       <aside className="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white flex flex-col z-40 hidden lg:flex">
         <div className="px-6 py-5 border-b border-slate-800">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-lg tracking-tight">CleanPro<span className="text-blue-400">.</span></span>
+            <img src="/logo.jpeg" alt="SatSet Cleaning Logo" className="w-8 h-8 rounded-lg object-cover bg-white" />
+            <span className="font-bold text-lg tracking-tight">
+              SatSet Cleaning
+            </span>
           </Link>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-1">

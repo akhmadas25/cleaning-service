@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 
 export const metadata: Metadata = {
-  title: "Buat Akun — CleanPro",
-  description: "Buat akun CleanPro gratis dan pesan pembersihan profesional pertama Anda hari ini.",
+  title: "Buat Akun — SatSet Cleaning",
+  description: "Buat akun SatSet Cleaning gratis dan pesan pembersihan profesional pertama Anda hari ini.",
 };
 
 export default function RegisterPage() {

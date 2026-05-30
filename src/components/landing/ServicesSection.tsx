@@ -17,7 +17,7 @@ const services = [
       "Pembersihan interior rutin termasuk vakum, pel, membersihkan debu, dan sanitasi seluruh permukaan.",
     color: "from-blue-500 to-blue-600",
     badge: "Paling Populer",
-    price: "Mulai $80",
+    price: "Mulai Rp 80.000",
   },
   {
     icon: Building2,
@@ -26,7 +26,7 @@ const services = [
       "Jaga produktivitas dan kebersihan ruang kerja Anda dengan pembersihan komersial profesional kami.",
     color: "from-violet-500 to-violet-600",
     badge: null,
-    price: "Mulai $120",
+    price: "Mulai Rp 120.000",
   },
   {
     icon: Sparkles,
@@ -35,7 +35,7 @@ const services = [
       "Pembersihan menyeluruh dari atas ke bawah untuk setiap sudut, perabotan, dan permukaan tersembunyi.",
     color: "from-cyan-500 to-cyan-600",
     badge: "Direkomendasikan",
-    price: "Mulai $200",
+    price: "Mulai Rp 200.000",
   },
   {
     icon: MoveRight,
@@ -44,7 +44,7 @@ const services = [
       "Buat transisi Anda bebas stres dengan pembersihan properti lengkap untuk tuan tanah dan penyewa.",
     color: "from-orange-500 to-orange-600",
     badge: null,
-    price: "Mulai $180",
+    price: "Mulai Rp 180.000",
   },
   {
     icon: Wind,
@@ -53,7 +53,7 @@ const services = [
       "Hilangkan debu dan puing konstruksi, biarkan ruang yang direnovasi tanpa noda dan siap digunakan.",
     color: "from-green-500 to-green-600",
     badge: null,
-    price: "Mulai $250",
+    price: "Mulai Rp 250.000",
   },
   {
     icon: Car,
@@ -62,7 +62,7 @@ const services = [
       "Cuci tekanan tinggi untuk jalan masuk, teras, dan fasad untuk meningkatkan daya tarik properti Anda.",
     color: "from-rose-500 to-rose-600",
     badge: null,
-    price: "Mulai $100",
+    price: "Mulai Rp 100.000",
   },
 ];
 
