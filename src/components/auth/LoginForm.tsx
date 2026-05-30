@@ -18,7 +18,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Eye, EyeOff, Loader2, LogIn, Sparkles } from "lucide-react";
 
 import { toast } from "sonner";
@@ -26,7 +31,6 @@ import { toast } from "sonner";
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
-
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -123,7 +127,11 @@ export function LoginForm() {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                         tabIndex={-1}
-                        aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                        aria-label={
+                          showPassword
+                            ? "Sembunyikan kata sandi"
+                            : "Tampilkan kata sandi"
+                        }
                       >
                         {showPassword ? (
                           <EyeOff className="w-4 h-4" />

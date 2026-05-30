@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   description:
     "Book trusted, professional cleaning services for your home or office. Fast, reliable, and affordable cleaning tailored to your needs.",
   keywords: ["cleaning service", "home cleaning", "office cleaning", "professional cleaners"],
+  icons: {
+    icon: "/logo.jpeg",
+  },
   openGraph: {
     title: "SatSet Cleaning — Professional Cleaning Services",
     description: "Book trusted, professional cleaning services for your home or office.",
