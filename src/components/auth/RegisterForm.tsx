@@ -61,13 +61,8 @@ export function RegisterForm() {
   return (
     <Card className="border-0 shadow-[0_20px_50px_rgba(0,47,135,0.4)] rounded-3xl overflow-hidden backdrop-blur-xl bg-white/95">
       <CardHeader className="pb-4 pt-8 px-8">
-        <div className="flex items-center gap-2 mb-2 justify-center">
-          <div className="w-10 h-10 rounded-md bg-[#ffd700] flex items-center justify-center shadow-lg shadow-[#ffd700]/40">
-            <Sparkles className="w-5 h-5 text-[#0088FF]" />
-          </div>
-          <span className="font-extrabold text-2xl tracking-widest uppercase text-slate-900">
-            LOGO
-          </span>
+        <div className="flex items-center justify-center mb-2">
+          <img src="/logo.jpeg" alt="SatSet Cleaning Logo" className="w-16 h-16 rounded-xl object-cover shadow-sm" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 mt-4">
           Buat akun Anda

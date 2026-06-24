@@ -100,7 +100,7 @@ export function Footer() {
 
         <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-base">
-            © {new Date().getFullYear()} SatSet Cleaning. Hak Cipta Dilindungi.
+            © {new Date().getFullYear()} SatSet Cleaning X universitas harkat negeri
           </p>
           <p className="text-base">
             Dibuat dengan ❤️ untuk dunia yang lebih bersih.
